@@ -22,7 +22,7 @@ func NewStandAloneStorage(conf *config.Config) *StandAloneStorage {
 	// Your Code Here (1).
 	dbPath := conf.DBPath
 	kvPath := filepath.Join(dbPath, "kv")
-	kvEngine := engine_util.CreateDB("kv", conf);
+	kvEngine := engine_util.CreateDB("kv", conf)
 	raftPath := filepath.Join(dbPath, "raft")
 	raftEngine := engine_util.CreateDB("raft", conf)
 
@@ -46,6 +46,8 @@ func (s *StandAloneStorage) Stop() error {
 
 func (s *StandAloneStorage) Reader(ctx *kvrpcpb.Context) (storage.StorageReader, error) {
 	// Your Code Here (1).
+	//kvTxn := s.Engine.Kv.NewTransaction(false)
+	//raftTxn := s.Engine.Raft.NewTransaction(false)
 	return &StandAloneReader{
 		kvTxn: s.Engine.Kv.NewTransaction(false),
 		raftTxn: s.Engine.Raft.NewTransaction(false),
@@ -59,10 +61,10 @@ func (s *StandAloneStorage) Write(ctx *kvrpcpb.Context, batch []storage.Modify) 
 		switch m.Data.(type){
 		case storage.Put:
 			put := m.Data.(storage.Put)
-			if put.Cf == "kv"{
-				txn = s.Engine.Kv.NewTransaction(true)
-			} else {
+			if put.Cf == "raft"{
 				txn = s.Engine.Raft.NewTransaction(true)
+			} else {
+				txn = s.Engine.Kv.NewTransaction(true)
 			}
 			err := txn.Set(engine_util.KeyWithCF(put.Cf, put.Key), put.Value)
 			if err != nil {
@@ -74,10 +76,10 @@ func (s *StandAloneStorage) Write(ctx *kvrpcpb.Context, batch []storage.Modify) 
 			}
 		case storage.Delete:
 			delete := m.Data.(storage.Delete)
-			if delete.Cf == "kv"{
-				txn = s.Engine.Kv.NewTransaction(true)
-			} else {
+			if delete.Cf == "raft"{
 				txn = s.Engine.Raft.NewTransaction(true)
+			} else {
+				txn = s.Engine.Kv.NewTransaction(true)
 			}
 			err := txn.Delete(engine_util.KeyWithCF(delete.Cf, delete.Key))
 			if err != nil {

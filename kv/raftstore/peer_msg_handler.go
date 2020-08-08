@@ -114,6 +114,8 @@ func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *
 		return
 	}
 	// Your Code Here (2B).
+	data, err := msg.Requests[0].Marshal()
+	
 }
 
 func (d *peerMsgHandler) onTick() {
