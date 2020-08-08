@@ -160,7 +160,7 @@ func (rn *RawNode) Ready() Ready {
 	}
 	softst := rn.Raft.softState()
 	hardst := rn.Raft.hardState()
-	if !softst.equal(rn.lastready.SoftState){
+	if !(softst.Lead == rn.lastready.SoftState.Lead && softst.RaftState == rn.lastready.SoftState.RaftState){
 		rn.lastready.SoftState = softst
 		rd.SoftState = softst
 	}
