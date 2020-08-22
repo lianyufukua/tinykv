@@ -2,7 +2,6 @@ package raftstore
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"fmt"
 	"time"
 
@@ -368,7 +367,7 @@ func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, erro
 	var result *ApplySnapResult
 	raftWB := new(engine_util.WriteBatch)
 	if !raft.IsEmptySnap(&ready.Snapshot){
-		kvWB := new(engine_util..WriteBatch)
+		kvWB := new(engine_util.WriteBatch)
 		result, err = ps.ApplySnapshot(&ready.Snapshot, kvWB, raftWB)
 		kvWB.WriteToDB(ps.Engines.Kv)
 	}
