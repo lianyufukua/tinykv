@@ -2,6 +2,7 @@ package raftstore
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"fmt"
 	"time"
 
@@ -347,6 +348,14 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	// and send RegionTaskApply task to region worker through ps.regionSched, also remember call ps.clearMeta
 	// and ps.clearExtraData to delete stale data
 	// Your Code Here (2C).
+	if ps.isInitialized(){
+		err := ps.clearMeta(kvWB, raftWB)
+		if err != nil{
+			return nil, err
+		}
+		ps.clearExtraData(snapData.Region)
+	}
+
 	return nil, nil
 }
 
@@ -355,14 +364,21 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, error) {
 	// Hint: you may call `Append()` and `ApplySnapshot()` in this function
 	// Your Code Here (2B/2C).
+	var err error
+	var result *ApplySnapResult
 	raftWB := new(engine_util.WriteBatch)
+	if !raft.IsEmptySnap(&ready.Snapshot){
+		kvWB := new(engine_util..WriteBatch)
+		result, err = ps.ApplySnapshot(&ready.Snapshot, kvWB, raftWB)
+		kvWB.WriteToDB(ps.Engines.Kv)
+	}
 	ps.Append(ready.Entries, raftWB)
 	if !raft.IsEmptyHardState(ready.HardState) {
 		ps.raftState.HardState = &ready.HardState
 	}
 	raftWB.SetMeta(meta.RaftStateKey(ps.region.GetId()), ps.raftState)
 	raftWB.WriteToDB(ps.Engines.Raft)
-	return nil, nil
+	return result, err
 }
 
 func (ps *PeerStorage) ClearData() {

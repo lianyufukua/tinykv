@@ -50,6 +50,7 @@ type RaftLog struct {
 	pendingSnapshot *pb.Snapshot
 
 	// Your Data Here (2A).
+	FirstIndex uint64
 }
 
 // newLog returns log using the given storage. It recovers the log
@@ -62,7 +63,7 @@ func newLog(storage Storage) *RaftLog {
 	if err != nil {
 		panic(err)
 	}
-	return &RaftLog{storage: storage, entries: entry, stabled: last, applied: first - 1}
+	return &RaftLog{storage: storage, entries: entry, stabled: last, applied: first - 1, FirstIndex: first}
 }
 
 // We need to compact the log entries in some point of time like
@@ -70,6 +71,8 @@ func newLog(storage Storage) *RaftLog {
 // grow unlimitedly in memory
 func (l *RaftLog) maybeCompact() {
 	// Your Code Here (2C).
+	first, _ := l.stroage.FirstIndex()
+	
 }
 
 // unstableEntries return all the unstable entries
